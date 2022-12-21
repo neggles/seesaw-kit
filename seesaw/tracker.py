@@ -8,6 +8,7 @@ import functools
 import datetime
 import os.path
 import re
+from os import getenv
 
 from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 from tornado.ioloop import IOLoop
@@ -22,7 +23,8 @@ import seesaw.six
 class TrackerRequest(Task):
     '''Represents a request to a Tracker.'''
 
-    DEFAULT_RETRY_DELAY = 60
+    DEFAULT_RETRY_DELAY = getenv("TRACKER_RETRY_DELAY", 60)
+    DEFAULT_RETRY_STEP = getenv("TRACKER_RETRY_STEP", 10)
 
     def __init__(self, name, tracker_url, tracker_command,
                  may_be_canceled=False):
@@ -101,7 +103,7 @@ class TrackerRequest(Task):
         raise NotImplementedError()
 
     def increment_retry_delay(self, max_delay=300):
-        self.retry_delay += 10
+        self.retry_delay += self.DEFAULT_RETRY_STEP
         self.retry_delay = min(max_delay, self.retry_delay)
 
     def reset_retry_delay(self):
